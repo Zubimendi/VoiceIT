@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - VoiceIT</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="auth-page">
+    <div class="container-fluid p-0 overflow-hidden">
+        <div class="row g-0 min-vh-100"> 
+            <div class="col-lg-6 d-none d-lg-block bg-primary bg-gradient auth-banner">
+                <div class="h-100 d-flex flex-column justify-content-center p-5 text-white">
+                    <h2 class="display-5 fw-bold mb-3">Welcome Back, Admin!</h2>
+                    <p class="lead">Login to continue your journey of creating meaningful change and supporting causes that matter.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 auth-form-container">
+                <div class="auth-form-wrapper p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="fw-bold mb-0">Sign In</h2>
+                            <p class="text-muted small">Access your account</p>
+                        </div>
+                        <a href="index.html" class="text-decoration-none">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-danger" id="loginAlert" role="alert" style="display: none;"></div>
+                    
+                    <form id="loginForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email or Username</label>
+                            <input type="text" class="form-control" id="loginEmail" required>
+                            <div class="invalid-feedback">Please enter your email or username</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="loginPassword" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberCheck">
+                                <label class="form-check-label" for="rememberCheck">Remember me</label>
+                            </div>
+                            <a href="#" class="text-decoration-none small">Forgot password?</a>
+                        </div>
+                        
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="auth-footer p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="language-selector d-flex align-items-center">
+                            <span class="me-2">🇺🇸</span>
+                            <span>English</span>
+                            <i class="fas fa-chevron-down ms-2 small"></i>
+                        </div>
+                        <div class="footer-links">
+                            <a href="#" class="text-decoration-none me-3 small">Terms</a>
+                            <a href="#" class="text-decoration-none me-3 small">Privacy</a>
+                            <a href="#" class="text-decoration-none small">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/auth.js"></script>
+    <script>
+        /**
+        * Dummy users for testing
+        */
+        const dummyUsers = [
+            { id: 1, username: "admin", email: "admin@example.com", password: "admin123", fullName: "Admin User", isAdmin: true },
+            { id: 2, username: "johndoe", email: "john@example.com", password: "password123", fullName: "John Doe", isAdmin: false },
+            { id: 3, username: "janedoe", email: "jane@example.com", password: "password123", fullName: "Jane Doe", isAdmin: false }
+        ];
+
+        /**
+        * Login function - authenticates user with provided credentials
+        * @param {string} emailOrUsername - User's email or username
+        * @param {string} password - User's password
+        * @returns {object} - User data and authentication status
+        */
+        function login(emailOrUsername, password) {
+            // Form validation
+            if (!emailOrUsername || !password) {
+                return { success: false, message: "Please enter all required fields" };
+            }
+
+            // Find user by email or username
+            const user = dummyUsers.find(user => 
+                user.email === emailOrUsername || 
+                user.username === emailOrUsername
+            );
+
+            // Check if user exists and password matches
+            if (!user) {
+                return { success: false, message: "User not found" };
+            }
+
+            if (user.password !== password) {
+                return { success: false, message: "Invalid password" };
+            }
+
+            // Create session (in real app, would use JWT or sessions)
+            const userData = { ...user };
+            delete userData.password; // Don't include password in session
+            
+            // Store user data in localStorage
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            localStorage.setItem('isLoggedIn', 'true');
+
+            return { 
+                success: true, 
+                message: "Login successful", 
+                user: userData,
+                isAdmin: user.isAdmin
+            };
+        }
+
+        $(document).ready(function() {
+            // Check for URL parameters (for login redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirected = urlParams.get('redirected');
+            const username = urlParams.get('username');
+            
+            if (redirected === 'true') {
+                $('#loginAlert').text('Please log in to continue').show();
+            }
+            
+            if (username) {
+                $('#loginEmail').val(username);
+                $('#loginPassword').focus();
+            }
+            
+            // Toggle password visibility
+            $('.toggle-password').click(function() {
+                const passwordField = $(this).prev('input');
+                const icon = $(this).find('i');
+                
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            // Form validation
+            (function () {
+                'use strict'
+                const forms = document.querySelectorAll('.needs-validation');
+                
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+            
+            // Handle login form submission
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const emailOrUsername = $('#loginEmail').val();
+                const password = $('#loginPassword').val();
+                
+                const result = login(emailOrUsername, password);
+                
+                if (result.success) {
+                    // Check if admin and redirect accordingly
+                    if (result.isAdmin) {
+                        window.location.href = 'home.html';
+                    } else {
+                        window.location.href = 'petitions.html';
+                    }
+                } else {
+                    $('#loginAlert').text(result.message).show();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
