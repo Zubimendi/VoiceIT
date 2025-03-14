@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Petition - VoiceIT</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- User Header -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h1 class="h3">VoiceIT</h1>
+            </div>
+            <div class="col-md-6 text-end">
+                <span class="me-3">Francis Ndubem</span>
+                <button class="btn btn-danger logout-btn">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Banner Area -->
+        <div class="border rounded p-5 mb-5 bg-light text-center">
+            <i class="fas fa-image fa-3x mb-2 text-muted"></i>
+            <p class="mb-0 text-muted">Banner Area</p>
+        </div>
+        
+        <!-- Page Title -->
+        <div class="row mb-5">
+            <div class="col-lg-6 mx-auto">
+                <h2 class="text-center border rounded py-3">CREATE YOUR PETITION</h2>
+            </div>
+        </div>
+        
+        <!-- Petition Form -->
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <form id="createPetitionForm">
+                    <div class="mb-4">
+                        <input type="text" class="form-control py-3 text-center" id="petitionTitle" placeholder="Insert Title" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <textarea class="form-control py-3 text-center" id="petitionDescription" rows="3" placeholder="Insert Description" required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-control py-3 text-center position-relative">
+                            <input type="file" class="position-absolute top-0 start-0 opacity-0 w-100 h-100" id="petitionImage" accept="image/*">
+                            <span>Upload Image</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-outline-dark px-4 mb-4">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/auth.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Check if user is logged in
+            function checkLoginStatus() {
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                if (!isLoggedIn) {
+                    window.location.href = 'login.html?redirected=true';
+                    return;
+                }
+                
+                // Display user information
+                const userData = JSON.parse(localStorage.getItem('currentUser'));
+                if (userData) {
+                    // You can update UI elements with user data here
+                }
+            }
+            
+            // Handle logout
+            $('.logout-btn').on('click', function() {
+                localStorage.removeItem('currentUser');
+                localStorage.setItem('isLoggedIn', 'false');
+                window.location.href = 'index.html';
+            });
+            
+            // Handle form submission
+            $('#createPetitionForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const title = $('#petitionTitle').val();
+                const description = $('#petitionDescription').val();
+                const imageFile = $('#petitionImage')[0].files[0];
+                
+                // Here you would typically send the data to a server
+                // For now, we'll just show a success alert and redirect
+                
+                alert('Petition created successfully!');
+                window.location.href = 'user-home.html';
+            });
+            
+            // Show filename when file is selected
+            $('#petitionImage').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                if (fileName) {
+                    $(this).next('span').text(fileName);
+                } else {
+                    $(this).next('span').text('Upload Image');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
