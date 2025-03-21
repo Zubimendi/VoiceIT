@@ -120,12 +120,6 @@
         $(document).ready(function() {
             // Check if user is admin, redirect if not
             function checkAdminStatus() {
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                if (!isLoggedIn) {
-                    window.location.href = '../login.html?redirected=true';
-                    return;
-                }
-                
                 const userData = JSON.parse(localStorage.getItem('currentUser'));
                 if (!userData || !userData.isAdmin) {
                     window.location.href = '../petitions.html';
@@ -138,7 +132,6 @@
             // Handle logout
             $('.logout-btn').on('click', function() {
                 localStorage.removeItem('currentUser');
-                localStorage.setItem('isLoggedIn', 'false');
                 window.location.href = '../index.html';
             });
             

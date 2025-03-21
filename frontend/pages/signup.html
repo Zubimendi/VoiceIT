@@ -135,31 +135,47 @@
                 }
             });
             
-            // Form validation
+            // Form validation and submission
             (function () {
                 'use strict'
                 const forms = document.querySelectorAll('.needs-validation');
                 
                 Array.prototype.slice.call(forms).forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
+                    form.addEventListener('submit', async function (event) {
+                        event.preventDefault();
                         if (!form.checkValidity()) {
-                            event.preventDefault();
                             event.stopPropagation();
+                        } else {
+                            // Send signup request to backend
+                            const fullName = $('#signupFullName').val();
+                            const email = $('#signupEmail').val();
+                            const password = $('#signupPassword').val();
+                            
+                            try {
+                                const response = await fetch('http://localhost:3000/api/auth/signup', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ username: fullName, email, password })
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (response.ok) {
+                                    // Redirect to login page or auto-login
+                                    window.location.href = 'login.html';
+                                } else {
+                                    $('#signupAlert').text(result.message).removeClass('d-none');
+                                }
+                            } catch (error) {
+                                $('#signupAlert').text('An error occurred during signup').removeClass('d-none');
+                            }
                         }
-                        
                         form.classList.add('was-validated');
                     }, false);
                 });
             })();
-            
-            // Check if passwords match
-            $('#signupConfirmPassword').on('keyup', function() {
-                if ($('#signupPassword').val() !== $(this).val()) {
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
         });
     </script>
 </body>

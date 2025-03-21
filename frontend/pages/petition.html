@@ -19,7 +19,7 @@
                 <h1 class="h3">VoiceIT</h1>
             </div>
             <div class="col-md-6 text-end">
-                <span class="me-3">Francis Ndubem</span>
+                <span class="me-3" id="userName"></span>
                 <button class="btn btn-danger logout-btn">
                     <i class="fas fa-sign-out-alt me-1"></i> Logout
                 </button>
@@ -28,8 +28,7 @@
         
         <!-- Banner Area -->
         <div class="border rounded p-5 mb-4 bg-light text-center">
-            <i class="fas fa-image fa-3x mb-2 text-muted"></i>
-            <p class="mb-0 text-muted">Banner Area</p>
+            <img id="petitionImage" class="img-fluid" alt="Petition Image" />
         </div>
         
         <!-- Search Bar -->
@@ -44,25 +43,13 @@
             </div>
         </div>
         
-        <!-- Petition Detail -->
+        <!-- Petition Detail --> 
         <div class="row mb-5">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title text-center mb-4">BAN PORN IN SCHOOLS</h2>
-                        <p class="card-text">
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore 
-                            et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
-                            aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse 
-                            cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa 
-                            qui officia deserunt mollit anim id est laborum.
-                        </p>
-                        
-                        <!-- Petition Image -->
-                        <div class="border rounded p-5 bg-light text-center my-4">
-                            <i class="fas fa-image fa-3x mb-2 text-muted"></i>
-                            <p class="mb-0 text-muted">Petition Image</p>
-                        </div>
+                        <h2 class="card-title text-center mb-4"></h2>
+                        <p class="card-text"></p>
                         
                         <div class="row align-items-center">
                             <div class="col-md-2">
@@ -71,10 +58,10 @@
                                 </a>
                             </div>
                             <div class="col-md-8 text-center">
-                                <button class="btn btn-primary px-5">VOTE</button>
+                                <button class="btn btn-primary px-5 vote-btn">VOTE</button>
                             </div>
                             <div class="col-md-2 text-end">
-                                <p class="mb-0">Created by: John Doe</p>
+                                <p class="mb-0"></p>
                             </div>
                         </div>
                     </div>
@@ -86,16 +73,13 @@
         <div class="row mb-4">
             <div class="col-md-6">
                 <h4>Members</h4>
-                <div class="list-group">
-                    <button class="list-group-item list-group-item-action mb-2 rounded">Andrew Wiggins</button>
-                    <button class="list-group-item list-group-item-action mb-2 rounded">Andrew Wiggins</button>
-                    <button class="list-group-item list-group-item-action mb-2 rounded">Andrew Wiggins</button>
-                    <button class="list-group-item list-group-item-action mb-2 rounded">Andrew Wiggins</button>
+                <div id="membersList" class="list-group">
+                    <!-- Members will be dynamically inserted here -->
                 </div>
             </div>
             <div class="col-md-6 d-flex align-items-center justify-content-end">
                 <div class="text-end">
-                    <h5>Total Votes: 3,000</h5>
+                    <h5>Total Votes: <span id="totalVotes"></span></h5>
                 </div>
             </div>
         </div>
@@ -106,7 +90,7 @@
                 <a href="create-petition.html" class="btn btn-outline-dark d-block py-2">CREATE A PETITION</a>
             </div>
             <div class="col-md-6">
-                <a href="#" class="btn btn-outline-dark d-block py-2">VIEW YOUR PETITIONS</a>
+                <a href="user-petitions.html" class="btn btn-outline-dark d-block py-2">VIEW YOUR PETITIONS</a>
             </div>
         </div>
     </div>
@@ -117,13 +101,83 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Custom JS -->
     <script src="assets/js/auth.js"></script>
-    <script>
+    <script> 
         $(document).ready(function() {
+            // Retrieve and display the selected petition data
+            const selectedPetition = JSON.parse(localStorage.getItem('selectedPetition'));
+            if (selectedPetition) {
+                fetchPetitionData(selectedPetition.id);
+                fetchMembers(selectedPetition.id);
+            }
+    
+            // Function to fetch and display petition data
+            function fetchPetitionData(petitionId) {
+                $.ajax({
+                    url: `http://localhost:3000/api/petitions/${petitionId}`,
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    },
+                    success: function(data) {
+                        $('.card-title').text(data.title);
+                        $('.card-text').text(data.description);
+                        $('.col-md-2.text-end p').text(`Created by: ${data.creator_name}`);
+                        $('#totalVotes').text(data.signature_count.toLocaleString());
+                        $('#petitionImage').attr('src', `http://localhost:3000/uploads/${data.image_url}`);
+                    },
+                    error: function() {
+                        console.error('Failed to fetch petition data');
+                    }
+                });
+            }
+
+            // Function to fetch and display members
+            function fetchMembers(petitionId) {
+                $.ajax({
+                    url: `http://localhost:3000/api/petitions/${petitionId}/voters`,
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    },
+                    success: function(data) {
+                        if (data.voters.length > 0) {
+                            const membersHTML = data.voters.map(voter => `<button class="list-group-item list-group-item-action mb-2 rounded">${voter}</button>`).join('');
+                            $('#membersList').html(membersHTML);
+                        } else {
+                            $('#membersList').html('<p>No members yet</p>');
+                        }
+                    },
+                    error: function() {
+                        console.error('Failed to fetch members');
+                        $('#membersList').html('<p>Error loading members</p>');
+                    }
+                });
+            }
+
+            // Function to handle voting/signing
+            $('.vote-btn').on('click', function() {
+                const petitionId = selectedPetition.id;
+                $.ajax({
+                    url: `http://localhost:3000/api/petitions/${petitionId}/sign`,
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    },
+                    data: {
+                        comment: 'Great petition!' // Optional comment
+                    },
+                    success: function() {
+                        alert('You have successfully signed the petition!');
+                        fetchPetitionData(petitionId); // Refresh petition data
+                    },
+                    error: function() {
+                        alert('Failed to sign the petition.');
+                    }
+                });
+            });
+
             // Check if user is logged in
             function checkLoginStatus() {
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                
-                // Display user information
                 const userData = JSON.parse(localStorage.getItem('currentUser'));
                 if (userData) {
                     // You can update UI elements with user data here
@@ -132,11 +186,19 @@
             
             // Run check on page load
             checkLoginStatus();
+            function displayUserName() {
+                const userData = JSON.parse(localStorage.getItem("currentUser"));
+                if (userData && userData.username) {
+                  $("#userName").text(userData.username);
+                }
+              }
+          
+              // Initial display of user name
+              displayUserName();
             
             // Handle logout
             $('.logout-btn').on('click', function() {
                 localStorage.removeItem('currentUser');
-                localStorage.setItem('isLoggedIn', 'false');
                 window.location.href = 'index.html';
             });
         });

@@ -25,9 +25,8 @@
           <h1 class="h3">User Dashboard</h1>
         </div>
         <div class="col-md-6 text-end">
-          <!-- <a href="../index.html" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-home me-1"></i> Main Site
-                </a> -->
+          <!-- Display logged-in user's name -->
+          <span id="userName" class="me-3"></span>
           <button class="btn btn-danger logout-btn">
             <i class="fas fa-sign-out-alt me-1"></i> Logout
           </button>
@@ -73,14 +72,17 @@
     </div>
     <!-- Action Buttons -->
     <div class="row mt-5 mb-4 justify-content-center">
-        <div class="col-md-6 d-flex justify-content-center">
-          <a href="create-petition.html" class="btn btn-outline-dark w-50 py-2">CREATE A PETITION</a>
-        </div>
-        <div class="col-md-6 d-flex justify-content-center">
-          <a href="user-petitions.html" class="btn btn-outline-dark w-50 py-2">VIEW YOUR PETITIONS</a>
-        </div>
+      <div class="col-md-6 d-flex justify-content-center">
+        <a href="create-petition.html" class="btn btn-outline-dark w-50 py-2"
+          >CREATE A PETITION</a
+        >
       </div>
-      
+      <div class="col-md-6 d-flex justify-content-center">
+        <a href="user-petitions.html" class="btn btn-outline-dark w-50 py-2"
+          >VIEW YOUR PETITIONS</a
+        >
+      </div>
+    </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -90,91 +92,85 @@
     <script src="../assets/js/auth.js"></script>
     <script>
       $(document).ready(function () {
-        // Sample petition data
-        const petitions = [
-          {
-            id: 1,
-            title: "BAN PORN IN SCHOOLS",
-            creator: "John Doe",
-            votes: 3000,
-            topVoter: "Andrew Wiggins",
-            otherVoters: 2900,
-          },
-          {
-            id: 2,
-            title: "IMPROVE SCHOOL LUNCH QUALITY",
-            creator: "Jane Doe",
-            votes: 3000,
-            topVoter: "Andrew Wiggins",
-            otherVoters: 2900,
-          },
-          {
-            id: 3,
-            title: "INCREASE TEACHER SALARIES",
-            creator: "Michael Smith",
-            votes: 3000,
-            topVoter: "Andrew Wiggins",
-            otherVoters: 2900,
-          },
-          {
-            id: 4,
-            title: "ADD MORE GREEN SPACES",
-            creator: "Sarah Johnson",
-            votes: 3000,
-            topVoter: "Andrew Wiggins",
-            otherVoters: 2900,
-          },
-        ];
-
-        // Function to create petition card HTML
-        function createPetitionCard(petition) {
-          return `
-                    <div class="col-md-6 mb-4">
-                        <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px;">
-                            <h5 class="mb-1">${petition.title}</h5>
-                            <p class="text-muted mb-3">Created by: ${
-                              petition.creator
-                            }</p>
-                            <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3" 
-                                    onclick="viewPetition(${
-                                      petition.id
-                                    })">VIEW</button>
-                        </div>
-                        <div class="mb-3">
-                            <span class="fw-bold">${petition.votes.toLocaleString()} Votes</span> 
-                            <span class="text-muted mx-2">|</span> 
-                            <span>${
-                              petition.topVoter
-                            } & ${petition.otherVoters}k voted</span>
-                        </div>
-                    </div>
-                `;
+        // Display the logged-in user's name
+        function displayUserName() { 
+          const userData = JSON.parse(localStorage.getItem("currentUser"));
+          if (userData && userData.username) {
+            $("#userName").text(userData.username);
+          }
         }
 
+        // Declare petitions array in a scope accessible to both functions
+        let petitions = [];
+
         // Function to render all petitions
-        function renderPetitions() {
+        function renderPetitions(petitionsData) {
+          petitions = petitionsData; // Assign fetched data to the petitions array
+          if (petitions.length === 0) {
+            $("#petitionsContainer").html("<p>No petitions...yet</p>");
+            return;
+          }
+
           const petitionsHTML = petitions
             .map((petition) => createPetitionCard(petition))
             .join("");
           $("#petitionsContainer").html(petitionsHTML);
         }
 
+        // Function to create petition card HTML
+        function createPetitionCard(petition) {
+          return `
+            <div class="col-md-6 mb-4">
+              <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px;">
+                <h5 class="mb-1">${petition.title}</h5>
+                <p class="text-muted mb-3">Created by: ${petition.creator_name}</p>
+                <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3" onclick="viewPetition(${petition.id})">VIEW</button>
+              </div>
+              <div class="mb-3">
+                <span class="fw-bold">${petition.signature_count.toLocaleString()} Votes</span> 
+              </div>
+            </div>
+          `;
+        }
+
         // Function to handle viewing a petition
         window.viewPetition = function (petitionId) {
-          // Store the selected petition in localStorage
           const petition = petitions.find((p) => p.id === petitionId);
-          localStorage.setItem("selectedPetition", JSON.stringify(petition));
-          // Navigate to petition.html
-          window.location.href = "petition.html";
+          if (petition) {
+            localStorage.setItem("selectedPetition", JSON.stringify(petition));
+            window.location.href = "petition.html";
+          } else {
+            console.error("Petition not found");
+          }
         };
 
-        // Initial render
-        renderPetitions();
+        // Fetch and render user's petitions
+        async function fetchAllPetitions() {
+          try {
+            const response = await fetch("http://localhost:3000/api/petitions", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch petitions");
+            }
+
+            const result = await response.json();
+            renderPetitions(result.data);
+          } catch (error) {
+            console.error("Error fetching petitions:", error.message);
+            $("#petitionsContainer").html("<p>Error loading petitions</p>");
+          }
+        }
+
+        // Initial fetch and render
+        fetchAllPetitions();
+        displayUserName();
 
         function checkLoginStatus() {
-          const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
-          // Display user information
           const userData = JSON.parse(localStorage.getItem("currentUser"));
           if (userData) {
             // You can update UI elements with user data here
@@ -187,8 +183,7 @@
         // Handle logout
         $(".logout-btn").on("click", function () {
           localStorage.removeItem("currentUser");
-          localStorage.setItem("isLoggedIn", "false");
-          window.location.href = "../index.html";
+          window.location.href = "index.html";
         });
       });
     </script>

@@ -1,56 +1,51 @@
 /**
  * Authentication Module for Petition Web App
- * Handles user login, signup, and session management with dummy data
+ * Handles user login, signup, and session management with backend API
  */
-
-// Dummy users for testing
-const dummyUsers = [
-    { id: 1, username: "admin", email: "admin@example.com", password: "admin123", fullName: "Admin User", isAdmin: true },
-    { id: 2, username: "johndoe", email: "john@example.com", password: "password123", fullName: "John Doe", isAdmin: false },
-    { id: 3, username: "janedoe", email: "jane@example.com", password: "password123", fullName: "Jane Doe", isAdmin: false }
-];
 
 /**
  * Login function - authenticates user with provided credentials
  * @param {string} emailOrUsername - User's email or username
  * @param {string} password - User's password
- * @returns {object} - User data and authentication status
+ * @returns {Promise<object>} - User data and authentication status
  */
-function login(emailOrUsername, password) {
+async function login(emailOrUsername, password) {
     // Form validation
     if (!emailOrUsername || !password) {
         return { success: false, message: "Please enter all required fields" };
     }
 
-    // Find user by email or username
-    const user = dummyUsers.find(user => 
-        user.email === emailOrUsername || 
-        user.username === emailOrUsername
-    );
+    try {
+        // Make request to backend API
+        const response = await fetch('http://localhost:3000/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: emailOrUsername, password })
+        });
 
-    // Check if user exists and password matches
-    if (!user) {
-        return { success: false, message: "User not found" };
+        const result = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', result.token); // Ensure token is stored
+            localStorage.setItem('currentUser', JSON.stringify(result.user));
+        }
+
+        if (!response.ok) {
+            return { success: false, message: result.message || "Login failed" };
+        }
+
+
+        return { 
+            success: true, 
+            message: "Login successful", 
+            user: result,
+            isAdmin: result.isAdmin
+        };
+    } catch (error) {
+        return { success: false, message: "An error occurred during login" };
     }
-
-    if (user.password !== password) {
-        return { success: false, message: "Invalid password" };
-    }
-
-    // Create session (in real app, would use JWT or sessions)
-    const userData = { ...user };
-    delete userData.password; // Don't include password in session
-    
-    // Store user data in localStorage
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    localStorage.setItem('isLoggedIn', 'true');
-
-    return { 
-        success: true, 
-        message: "Login successful", 
-        user: userData,
-        isAdmin: user.isAdmin
-    };
 }
 
 /**
@@ -59,9 +54,9 @@ function login(emailOrUsername, password) {
  * @param {string} password - User's password
  * @param {string} confirmPassword - Password confirmation
  * @param {string} fullName - User's full name
- * @returns {object} - Registration status and message
+ * @returns {Promise<object>} - Registration status and message
  */
-function signup(email, password, confirmPassword, fullName) {
+async function signup(email, password, confirmPassword, fullName) {
     // Form validation
     if (!email || !password || !confirmPassword || !fullName) {
         return { success: false, message: "Please enter all required fields" };
@@ -87,38 +82,33 @@ function signup(email, password, confirmPassword, fullName) {
         };
     }
 
-    // Check if user already exists
-    const existingUser = dummyUsers.find(user => user.email === email);
-    if (existingUser) {
-        return { success: false, message: "Email already registered" };
+    try {
+        // Make request to backend API
+        const response = await fetch('http://localhost:3000/api/auth/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password, fullName })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return { success: false, message: result.message || "Signup failed" };
+        }
+
+        // Auto-login after signup
+        localStorage.setItem('currentUser', JSON.stringify(result));
+
+        return { 
+            success: true, 
+            message: "Account created successfully", 
+            user: result
+        };
+    } catch (error) {
+        return { success: false, message: "An error occurred during signup" };
     }
-
-    // Create new user (in real app, would save to DB)
-    const username = email.split('@')[0]; // Generate username from email
-    const newUser = {
-        id: dummyUsers.length + 1,
-        username,
-        email,
-        password,
-        fullName,
-        isAdmin: false
-    };
-
-    // Add to dummy users array (simulate DB insert)
-    dummyUsers.push(newUser);
-
-    // Auto-login after signup
-    const userData = { ...newUser };
-    delete userData.password;
-    
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    localStorage.setItem('isLoggedIn', 'true');
-
-    return { 
-        success: true, 
-        message: "Account created successfully", 
-        user: userData
-    };
 }
 
 /**
@@ -126,9 +116,7 @@ function signup(email, password, confirmPassword, fullName) {
  */
 function logout() {
     localStorage.removeItem('currentUser');
-    localStorage.setItem('isLoggedIn', 'false');
-    
-    // Redirect to home page
+    localStorage.removeItem('token'); // Remove token
     window.location.href = 'index.html';
 }
 
@@ -137,7 +125,7 @@ function logout() {
  * @returns {boolean} - Login status
  */
 function isLoggedIn() {
-    return localStorage.getItem('isLoggedIn') === 'true';
+    return !!localStorage.getItem('token'); // Check if token exists
 }
 
 /**
@@ -153,7 +141,7 @@ function getCurrentUser() {
  * Check if current user is admin
  * @returns {boolean} - Admin status
  */
-function isAdmin() {
+function isAdmin() { 
     const user = getCurrentUser();
     return user ? user.isAdmin : false;
 }
@@ -172,13 +160,13 @@ function initAuth() {
     }
     
     // Add event listeners for login form
-    $('#loginForm').on('submit', function(e) {
+    $('#loginForm').on('submit', async function(e) {
         e.preventDefault();
         
         const emailOrUsername = $('#loginEmail').val();
         const password = $('#loginPassword').val();
         
-        const result = login(emailOrUsername, password);
+        const result = await login(emailOrUsername, password);
         
         if (result.success) {
             // Check if admin and redirect accordingly
@@ -193,7 +181,7 @@ function initAuth() {
     });
     
     // Add event listeners for signup form
-    $('#signupForm').on('submit', function(e) {
+    $('#signupForm').on('submit', async function(e) {
         e.preventDefault();
         
         const email = $('#signupEmail').val();
@@ -201,7 +189,7 @@ function initAuth() {
         const confirmPassword = $('#signupConfirmPassword').val();
         const fullName = $('#signupFullName').val();
         
-        const result = signup(email, password, confirmPassword, fullName);
+        const result = await signup(email, password, confirmPassword, fullName);
         
         if (result.success) {
             window.location.href = 'petitions.html';

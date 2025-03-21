@@ -67,59 +67,8 @@
       </div>
 
       <!-- Petitions Grid -->
-      <div class="row">
-        <!-- Petition Cards -->
-        <script>
-          const petitions = [
-            {
-              title: "BAN PORN IN SCHOOLS",
-              creator: "John Doe",
-              votes: "3,000",
-              topVoter: "Andrew Wiggins",
-              otherVoters: "2.9k",
-            },
-            {
-              title: "IMPROVE SCHOOL LUNCH QUALITY",
-              creator: "Jane Doe",
-              votes: "3,000",
-              topVoter: "Andrew Wiggins",
-              otherVoters: "2.9k",
-            },
-            {
-              title: "INCREASE TEACHER SALARIES",
-              creator: "Michael Smith",
-              votes: "3,000",
-              topVoter: "Andrew Wiggins",
-              otherVoters: "2.9k",
-            },
-            {
-              title: "ADD MORE GREEN SPACES",
-              creator: "Sarah Johnson",
-              votes: "3,000",
-              topVoter: "Andrew Wiggins",
-              otherVoters: "2.9k",
-            },
-          ];
-
-          petitions.forEach((petition) => {
-            document.write(`
-              <div class="col-md-6 mb-4">
-                <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px">
-                  <h5 class="mb-1">${petition.title}</h5>
-                  <p class="text-muted mb-3">Created by: ${petition.creator}</p>
-                  <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3">
-                    <a href="view-petition.html" class="no-underline">VIEW</a>
-                  </button>
-                </div>
-                <div class="mb-3">
-                  <span class="fw-bold">${petition.votes} Votes</span>
-                  <span class="text-muted mx-2">|</span>
-                  <span>${petition.topVoter} & ${petition.otherVoters} voted</span>
-                </div>
-              </div>
-            `);
-          });
-        </script>
+      <div class="row" id="petitionsContainer">
+        <!-- Petition Cards will be dynamically inserted here -->
       </div>
 
       <!-- View More Button -->
@@ -173,27 +122,70 @@
     <script src="../assets/js/auth.js"></script>
     <script>
       $(document).ready(function () {
-        // Check if user is admin, redirect if not
+        // Check if user is admin and token is valid, redirect if not
         function checkAdminStatus() {
-          const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-          if (!isLoggedIn) {
-            window.location.href = "../login.html?redirected=true";
+          const token = localStorage.getItem("token");
+          const userData = JSON.parse(localStorage.getItem("currentUser"));
+
+          if (!token || !userData || !userData.isAdmin) {
+            window.location.href = "admin-login.html?redirected=true";
             return;
           }
+        }
 
-          const userData = JSON.parse(localStorage.getItem("currentUser"));
-          if (!userData || !userData.isAdmin) {
-            window.location.href = "../petitions.html";
+        // Fetch petitions from the backend
+        async function fetchPetitions() {
+          try {
+            const response = await fetch('http://localhost:3000/api/petitions', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch petitions');
+            }
+
+            const result = await response.json();
+            renderPetitions(result.data);
+          } catch (error) {
+            console.error('Error fetching petitions:', error);
           }
+        }
+
+        // Render petitions on the page
+        function renderPetitions(petitions) {
+          const container = $('#petitionsContainer');
+          container.empty();
+
+          petitions.forEach(petition => {
+            const petitionCard = `
+              <div class="col-md-6 mb-4">
+                <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px">
+                  <h5 class="mb-1">${petition.title}</h5>
+                  <p class="text-muted mb-3">Created by: ${petition.creator_name}</p>
+                  <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3">
+                    <a href="view-petition.html?id=${petition.id}" class="no-underline">VIEW</a>
+                  </button>
+                </div>
+                <div class="mb-3">
+                  <span class="fw-bold">${petition.signature_count} Votes</span>
+                </div>
+              </div>
+            `;
+            container.append(petitionCard);
+          });
         }
 
         // Run check on page load
         checkAdminStatus();
+        fetchPetitions();
 
         // Handle logout
         $(".logout-btn").on("click", function () {
           localStorage.removeItem("currentUser");
-          localStorage.setItem("isLoggedIn", "false");
+          localStorage.removeItem("token");
           window.location.href = "../index.html";
         });
       });

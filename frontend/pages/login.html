@@ -133,19 +133,43 @@
                 }
             });
             
-            // Form validation
+            // Form validation and submission
             (function () {
                 'use strict'
                 const forms = document.querySelectorAll('.needs-validation');
                 
                 Array.prototype.slice.call(forms).forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
+                    form.addEventListener('submit', async function (event) {
                         event.preventDefault();
                         if (!form.checkValidity()) {
                             event.stopPropagation();
                         } else {
-                            // Navigate to user home page
-                            window.location.href = 'user-home.html';
+                            // Send login request to backend
+                            const emailOrUsername = $('#loginEmail').val();
+                            const password = $('#loginPassword').val();
+
+                            try {
+                                const response = await fetch('http://localhost:3000/api/auth/login', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ email: emailOrUsername, password })
+                                });
+
+                                const result = await response.json();
+
+                                if (response.ok) {
+                                    // Store token and user data
+                                    localStorage.setItem('token', result.token);
+                                    localStorage.setItem('currentUser', JSON.stringify(result));
+                                    window.location.href = 'user-home.html';
+                                } else {
+                                    $('#loginAlert').text(result.message).removeClass('d-none');
+                                }
+                            } catch (error) {
+                                $('#loginAlert').text('An error occurred during login').removeClass('d-none');
+                            }
                         }
                         form.classList.add('was-validated');
                     }, false);

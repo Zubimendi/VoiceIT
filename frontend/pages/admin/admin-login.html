@@ -28,7 +28,7 @@
                             <h2 class="fw-bold mb-0">Sign In</h2>
                             <p class="text-muted small">Access your account</p>
                         </div>
-                        <a href="index.html" class="text-decoration-none">
+                        <a href="../index.html" class="text-decoration-none">
                             <i class="fas fa-times"></i>
                         </a>
                     </div>
@@ -91,58 +91,6 @@
     <!-- Custom JS -->
     <script src="assets/js/auth.js"></script>
     <script>
-        /**
-        * Dummy users for testing
-        */
-        const dummyUsers = [
-            { id: 1, username: "admin", email: "admin@example.com", password: "admin123", fullName: "Admin User", isAdmin: true },
-            { id: 2, username: "johndoe", email: "john@example.com", password: "password123", fullName: "John Doe", isAdmin: false },
-            { id: 3, username: "janedoe", email: "jane@example.com", password: "password123", fullName: "Jane Doe", isAdmin: false }
-        ];
-
-        /**
-        * Login function - authenticates user with provided credentials
-        * @param {string} emailOrUsername - User's email or username
-        * @param {string} password - User's password
-        * @returns {object} - User data and authentication status
-        */
-        function login(emailOrUsername, password) {
-            // Form validation
-            if (!emailOrUsername || !password) {
-                return { success: false, message: "Please enter all required fields" };
-            }
-
-            // Find user by email or username
-            const user = dummyUsers.find(user => 
-                user.email === emailOrUsername || 
-                user.username === emailOrUsername
-            );
-
-            // Check if user exists and password matches
-            if (!user) {
-                return { success: false, message: "User not found" };
-            }
-
-            if (user.password !== password) {
-                return { success: false, message: "Invalid password" };
-            }
-
-            // Create session (in real app, would use JWT or sessions)
-            const userData = { ...user };
-            delete userData.password; // Don't include password in session
-            
-            // Store user data in localStorage
-            localStorage.setItem('currentUser', JSON.stringify(userData));
-            localStorage.setItem('isLoggedIn', 'true');
-
-            return { 
-                success: true, 
-                message: "Login successful", 
-                user: userData,
-                isAdmin: user.isAdmin
-            };
-        }
-
         $(document).ready(function() {
             // Check for URL parameters (for login redirect)
             const urlParams = new URLSearchParams(window.location.search);
@@ -171,42 +119,39 @@
                     icon.removeClass('fa-eye-slash').addClass('fa-eye');
                 }
             });
-            
-            // Form validation
-            (function () {
-                'use strict'
-                const forms = document.querySelectorAll('.needs-validation');
-                
-                Array.prototype.slice.call(forms).forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                        
-                        form.classList.add('was-validated');
-                    }, false);
-                });
-            })();
-            
+        
             // Handle login form submission
-            $('#loginForm').on('submit', function(e) {
+            $('#loginForm').on('submit', async function(e) {
                 e.preventDefault();
                 
                 const emailOrUsername = $('#loginEmail').val();
                 const password = $('#loginPassword').val();
                 
-                const result = login(emailOrUsername, password);
-                
-                if (result.success) {
-                    // Check if admin and redirect accordingly
-                    if (result.isAdmin) {
-                        window.location.href = 'home.html';
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: emailOrUsername, password })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // Store token and user data
+                        localStorage.setItem('token', result.token);
+                        localStorage.setItem('currentUser', JSON.stringify(result));
+                        if (result.isAdmin) {
+                            window.location.href = 'home.html'; // Redirect to home.html for admins
+                        } else {
+                            $('#loginAlert').text('Access denied. Admins only.').show();
+                        }
                     } else {
-                        window.location.href = 'petitions.html';
+                        $('#loginAlert').text(result.message).show();
                     }
-                } else {
-                    $('#loginAlert').text(result.message).show();
+                } catch (error) {
+                    $('#loginAlert').text('An error occurred during login').show();
                 }
             });
         });

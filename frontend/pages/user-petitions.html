@@ -1,68 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Petitions - VoiceIT</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="../assets/css/style.css" />
+  </head>
+  <body>
     <div class="container mt-4">
-        <!-- User Header -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <h1 class="h3">Your Petitions</h1>
-            </div>
-            <div class="col-md-6 text-end">
-                <button class="btn btn-danger logout-btn">
-                    <i class="fas fa-sign-out-alt me-1"></i> Logout
-                </button>
-            </div>
+      <!-- User Header -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <h1 class="h3">Your Petitions</h1>
         </div>
-        
-        <!-- Banner Placeholder -->
-        <div class="border rounded p-5 mb-4 bg-light text-center">
-            <i class="fas fa-image fa-3x mb-2 text-muted"></i>
-            <p class="mb-0 text-muted">Your Petitions Area</p>
+        <div class="col-md-6 text-end">
+          <button class="btn btn-danger logout-btn">
+            <i class="fas fa-sign-out-alt me-1"></i> Logout
+          </button>
         </div>
-        
-        <!-- Action Buttons Row -->
-        <div class="row mb-4">
-            <div class="col-md-6 mb-3 mb-md-0">
-                <button class="btn btn-primary">
-                    <i class="fas fa-list me-1"></i> Your Popular Petitions
-                </button>
-            </div>
-            <div class="col-md-6">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search Your Petitions">
-                    <span class="input-group-text bg-white text-primary">
-                        <i class="fas fa-search"></i>
-                    </span>
-                </div>
-            </div>
+      </div>
+
+      <!-- Banner Placeholder -->
+      <div class="border rounded p-5 mb-4 bg-light text-center">
+        <i class="fas fa-image fa-3x mb-2 text-muted"></i>
+        <p class="mb-0 text-muted">Your Petitions Area</p>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <button class="btn btn-primary">
+            <i class="fas fa-list me-1"></i> Your Popular Petitions
+          </button>
         </div>
-        
-        <!-- Petitions Grid -->
-        <div class="row" id="userPetitionsContainer">
-            <!-- User-specific petition cards will be dynamically inserted here -->
+        <div class="col-md-6">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Search Your Petitions"
+            />
+            <span class="input-group-text bg-white text-primary">
+              <i class="fas fa-search"></i>
+            </span>
+          </div>
         </div>
-        
-        <!-- View More Button -->
-        <div class="text-end mb-4">
-            <button class="btn btn-outline-primary">VIEW MORE</button>
+      </div>
+
+      <!-- Petitions Grid -->
+      <div class="row" id="userPetitionsContainer">
+        <!-- User-specific petition cards will be dynamically inserted here -->
+      </div>
+
+      <!-- View More Button -->
+      <div class="text-end mb-4">
+        <button class="btn btn-outline-primary">VIEW MORE</button>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="row mt-5 mb-4 justify-content-center">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <a href="create-petition.html" class="btn btn-outline-dark d-block py-2 text-center">
+            CREATE A PETITION
+          </a>
         </div>
-                <!-- Action Buttons -->
-                <div class="row mt-5 mb-4 justify-content-center">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <a href="create-petition.html" class="btn btn-outline-dark d-block py-2 text-center">CREATE A PETITION</a>
-                    </div>
-                </div>
+      </div>
     </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
@@ -72,118 +85,78 @@
     <!-- Custom JS -->
     <script src="../assets/js/auth.js"></script>
     <script>
-        $(document).ready(function() {
-            // Mock user data for testing purposes
-            if (!localStorage.getItem('currentUser')) {
-                const mockUser = {
-                    name: "John Doe" // Ensure this matches one of the petition creators
-                };
-                localStorage.setItem('currentUser', JSON.stringify(mockUser));
-            }
-
-            // Sample petition data
-            const petitions = [
-                { 
-                    id: 1,
-                    title: "BAN PORN IN SCHOOLS",
-                    creator: "John Doe",
-                    votes: 3000,
-                    topVoter: "Andrew Wiggins",
-                    otherVoters: 2900
-                },
-                {
-                    id: 2,
-                    title: "IMPROVE SCHOOL LUNCH QUALITY",
-                    creator: "Jane Doe",
-                    votes: 3000,
-                    topVoter: "Andrew Wiggins",
-                    otherVoters: 2900
-                },
-                {
-                    id: 3,
-                    title: "INCREASE TEACHER SALARIES",
-                    creator: "Michael Smith",
-                    votes: 3000,
-                    topVoter: "Andrew Wiggins",
-                    otherVoters: 2900
-                },
-                {
-                    id: 4,
-                    title: "ADD MORE GREEN SPACES",
-                    creator: "Sarah Johnson",
-                    votes: 3000,
-                    topVoter: "Andrew Wiggins",
-                    otherVoters: 2900
-                }
-            ];
-
-            // Function to create petition card HTML
-            function createPetitionCard(petition) {
-                return `
-                    <div class="col-md-6 mb-4">
-                        <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px;">
-                            <h5 class="mb-1">${petition.title}</h5>
-                            <p class="text-muted mb-3">Created by: ${petition.creator}</p>
-                            <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3" 
-                                    onclick="viewPetition(${petition.id})">VIEW</button>
-                        </div>
-                        <div class="mb-3">
-                            <span class="fw-bold">${petition.votes.toLocaleString()} Votes</span> 
-                            <span class="text-muted mx-2">|</span> 
-                            <span>${petition.topVoter} & ${petition.otherVoters}k voted</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Function to render user-specific petitions
-            function renderUserPetitions() {
-                const userData = JSON.parse(localStorage.getItem('currentUser'));
-                if (!userData) {
-                    console.error('No user data found in localStorage.');
-                    return;
-                }
-                console.log('Current User:', userData.name);
-
-                const userPetitions = petitions.filter(petition => petition.creator === userData.name);
-                if (userPetitions.length === 0) {
-                    console.warn('No petitions found for the current user.');
-                } else {
-                    console.log('User Petitions:', userPetitions);
-                }
-
-                const petitionsHTML = userPetitions.map(petition => createPetitionCard(petition)).join('');
-                $('#userPetitionsContainer').html(petitionsHTML);
-            }
-
-            // Function to handle viewing a petition
-            window.viewPetition = function(petitionId) {
-                const petition = petitions.find(p => p.id === petitionId);
-                localStorage.setItem('selectedPetition', JSON.stringify(petition));
-                window.location.href = 'petition.html';
-            };
-
-            // Initial render
-            renderUserPetitions();
-
-            function checkLoginStatus() {
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                const userData = JSON.parse(localStorage.getItem('currentUser'));
-                if (userData) {
-                    // You can update UI elements with user data here
-                }
-            }
-            
-            // Run check on page load
-            checkLoginStatus();
-            
-            // Handle logout
-            $('.logout-btn').on('click', function() {
-                localStorage.removeItem('currentUser');
-                localStorage.setItem('isLoggedIn', 'false');
-                window.location.href = '../index.html';
+      $(document).ready(function () {
+        // Fetch and render user's petitions
+        async function fetchUserPetitions() {
+          try {
+            const response = await fetch("http://localhost:3000/api/petitions/user/me", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
             });
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch user petitions");
+            }
+
+            const result = await response.json();
+            renderUserPetitions(result.data);
+          } catch (error) {
+            console.error("Error fetching user petitions:", error.message);
+            $("#userPetitionsContainer").html("<p>Error loading user petitions</p>");
+          }
+        }
+
+        // Function to create petition card HTML
+        function createPetitionCard(petition) {
+          return `
+            <div class="col-md-6 mb-4">
+              <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px;">
+                <h5 class="mb-1">${petition.title}</h5>
+                <p class="text-muted mb-3">Created by: Me</p>
+                <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3" 
+                        data-id="${petition.id}">VIEW</button>
+              </div>
+              <div class="mb-3"> 
+                <span class="fw-bold">${petition.signature_count.toLocaleString()} Votes</span>
+              </div>
+            </div>
+          `;
+        }
+
+        // Function to render user-specific petitions
+        function renderUserPetitions(petitions) {
+          if (petitions.length === 0) {
+            $("#userPetitionsContainer").html("<p>No petitions found</p>");
+            return;
+          }
+
+          const petitionsHTML = petitions.map(createPetitionCard).join("");
+          $("#userPetitionsContainer").html(petitionsHTML);
+        }
+
+        // Function to handle viewing a petition
+        $("#userPetitionsContainer").on("click", "button[data-id]", function () {
+            const petitionId = $(this).data("id");
+            const selectedPetition = {
+              id: petitionId,
+              title: $(this).closest(".border").find("h5").text(),
+              signature_count: $(this).closest(".col-md-6").find(".fw-bold").text(),
+            };
+          
+            localStorage.setItem("selectedPetition", JSON.stringify(selectedPetition));
+            window.location.href = "petition.html";
+          });
+        // Initial fetch and render
+        fetchUserPetitions();
+
+        // Handle logout
+        $(".logout-btn").on("click", function () {
+          localStorage.removeItem("currentUser");
+          window.location.href = "index.html";
         });
+      });
     </script>
-</body>
+  </body>
 </html>

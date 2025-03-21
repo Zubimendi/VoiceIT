@@ -19,7 +19,7 @@
                 <h1 class="h3">VoiceIT</h1>
             </div>
             <div class="col-md-6 text-end">
-                <span class="me-3">Francis Ndubem</span>
+                <span id="userName" class="me-3"></span>
                 <button class="btn btn-danger logout-btn">
                     <i class="fas fa-sign-out-alt me-1"></i> Logout
                 </button>
@@ -72,41 +72,60 @@
     <script src="assets/js/auth.js"></script>
     <script>
         $(document).ready(function() {
-            // Check if user is logged in
-            function checkLoginStatus() {
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                if (!isLoggedIn) {
-                    window.location.href = 'login.html?redirected=true';
-                    return;
-                }
-                
-                // Display user information
-                const userData = JSON.parse(localStorage.getItem('currentUser'));
-                if (userData) {
-                    // You can update UI elements with user data here
+            // Display the logged-in user's name
+            function displayUserName() {
+                const userData = JSON.parse(localStorage.getItem("currentUser"));
+                if (userData && userData.username) {
+                    $("#userName").text(userData.username);
                 }
             }
-            
+
+            // Initial display of user name
+            displayUserName();
+
             // Handle logout
             $('.logout-btn').on('click', function() {
                 localStorage.removeItem('currentUser');
-                localStorage.setItem('isLoggedIn', 'false');
                 window.location.href = 'index.html';
             });
             
             // Handle form submission
-            $('#createPetitionForm').on('submit', function(e) {
+            $('#createPetitionForm').on('submit', async function(e) {
                 e.preventDefault();
-                
+                const user = JSON.parse(localStorage.getItem('currentUser'));
                 const title = $('#petitionTitle').val();
                 const description = $('#petitionDescription').val();
                 const imageFile = $('#petitionImage')[0].files[0];
                 
-                // Here you would typically send the data to a server
-                // For now, we'll just show a success alert and redirect
+                // Prepare FormData to send
+                const formData = new FormData();
+                formData.append('user_id', user.id);
+                formData.append('title', title);
+                formData.append('description', description);
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
                 
-                alert('Petition created successfully!');
-                window.location.href = 'user-home.html';
+                try {
+                    // Send fetch request to create petition
+                    const response = await fetch('http://localhost:3000/api/petitions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}` // Ensure token is correctly sent
+                        },
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Failed to create petition');
+                    }
+
+                    alert('Petition created successfully!');
+                    window.location.href = 'user-home.html';
+                } catch (error) {
+                    alert('Failed to create petition: ' + error.message);
+                }
             });
             
             // Show filename when file is selected
