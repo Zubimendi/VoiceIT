@@ -24,30 +24,15 @@
   </head>
   <body>
     <div class="container mt-4">
-      <!-- Admin Header -->
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <h1 class="h3">Admin Dashboard</h1>
-        </div>
-        <div class="col-md-6 text-end">
-          <a href="../index.html" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-home me-1"></i> Main Site
-          </a>
-          <button class="btn btn-danger logout-btn">
-            <i class="fas fa-sign-out-alt me-1"></i> Logout
-          </button>
-        </div>
-      </div>
+      <!-- User Header -->
+      <div id="navbarContainer"></div> <!-- Placeholder for navbar -->
 
-      <!-- Banner Placeholder -->
-      <div class="border rounded p-5 mb-4 bg-light text-center">
-        <i class="fas fa-image fa-3x mb-2 text-muted"></i>
-        <p class="mb-0 text-muted">Banner Area</p>
-      </div>
+      <!-- Banner Area -->
+      <div id="bannerArea"></div>
 
       <!-- Action Buttons Row -->
       <div class="row mb-4">
-        <div class="col-md-6 mb-3 mb-md-0">
+        <div class="col-md-6 mb-3 mb-md-0"> 
           <button class="btn btn-primary">
             <i class="fas fa-list me-1"></i> Popular Petitions
           </button>
@@ -57,7 +42,7 @@
             <input
               type="text"
               class="form-control"
-              placeholder="Search Title/Creator Name"
+              placeholder="Search Title"
             />
             <span class="input-group-text bg-white text-primary">
               <i class="fas fa-search"></i>
@@ -122,6 +107,8 @@
     <script src="../assets/js/auth.js"></script>
     <script>
       $(document).ready(function () {
+        $('#navbarContainer').load('../../includes/navbar.html'); // Load navbar component
+        $('#bannerArea').load('../../includes/banner.html');
         // Check if user is admin and token is valid, redirect if not
         function checkAdminStatus() {
           const token = localStorage.getItem("token");
@@ -132,6 +119,8 @@
             return;
           }
         }
+
+        let petitions = []; // Store petitions data
 
         // Fetch petitions from the backend
         async function fetchPetitions() {
@@ -148,7 +137,8 @@
             }
 
             const result = await response.json();
-            renderPetitions(result.data);
+            petitions = result.data; // Store fetched petitions
+            renderPetitions(petitions);
           } catch (error) {
             console.error('Error fetching petitions:', error);
           }
@@ -165,8 +155,8 @@
                 <div class="border rounded-3 p-3 mb-2 position-relative" style="height: 150px">
                   <h5 class="mb-1">${petition.title}</h5>
                   <p class="text-muted mb-3">Created by: ${petition.creator_name}</p>
-                  <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3">
-                    <a href="view-petition.html?id=${petition.id}" class="no-underline">VIEW</a>
+                  <button class="btn btn-outline-primary btn-sm position-absolute bottom-0 end-0 mb-3 me-3 view-btn" data-id="${petition.id}">
+                    VIEW
                   </button>
                 </div>
                 <div class="mb-3">
@@ -178,15 +168,27 @@
           });
         }
 
+        // Filter petitions based on search input
+        $('.input-group input').on('input', function() {
+          const searchTerm = $(this).val().toLowerCase();
+          const filteredPetitions = petitions.filter(petition => petition.title.toLowerCase().startsWith(searchTerm));
+          renderPetitions(filteredPetitions);
+        });
+
         // Run check on page load
         checkAdminStatus();
         fetchPetitions();
 
         // Handle logout
         $(".logout-btn").on("click", function () {
-          localStorage.removeItem("currentUser");
-          localStorage.removeItem("token");
+          localStorage.clear()
           window.location.href = "../index.html";
+        });
+
+        // Handle view button click
+        $(document).on('click', '.view-btn', function() {
+          const petitionId = $(this).data('id');
+          window.location.href = `view-petition.html?id=${petitionId}`;
         });
       });
     </script>

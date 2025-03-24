@@ -18,6 +18,7 @@ router.get('/users/:id', adminController.getUserById);
 router.post('/users', adminController.createUser);
 router.put('/users/:id/block', adminController.blockUser);
 router.put('/users/:id/unblock', adminController.unblockUser);
+router.delete('/users/:id', adminController.deleteUser); // Add this line
 
 // Petition management
 router.delete('/petitions/:id', adminController.deletePetition);

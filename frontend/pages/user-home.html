@@ -19,25 +19,11 @@
   </head>
   <body>
     <div class="container mt-4">
-      <!-- Admin Header -->
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <h1 class="h3">User Dashboard</h1>
-        </div>
-        <div class="col-md-6 text-end">
-          <!-- Display logged-in user's name -->
-          <span id="userName" class="me-3"></span>
-          <button class="btn btn-danger logout-btn">
-            <i class="fas fa-sign-out-alt me-1"></i> Logout
-          </button>
-        </div>
-      </div>
+      <!-- User Header -->
+      <div id="navbarContainer"></div> <!-- Placeholder for navbar -->
 
-      <!-- Banner Placeholder -->
-      <div class="border rounded p-5 mb-4 bg-light text-center">
-        <i class="fas fa-image fa-3x mb-2 text-muted"></i>
-        <p class="mb-0 text-muted">Banner Area</p>
-      </div>
+      <!-- Banner Area -->
+      <div id="bannerArea"></div>
 
       <!-- Action Buttons Row -->
       <div class="row mb-4">
@@ -92,6 +78,8 @@
     <script src="../assets/js/auth.js"></script>
     <script>
       $(document).ready(function () {
+        $('#navbarContainer').load('../includes/navbar.html'); // Load navbar component
+        $('#bannerArea').load('../includes/banner.html');
         // Display the logged-in user's name
         function displayUserName() { 
           const userData = JSON.parse(localStorage.getItem("currentUser"));

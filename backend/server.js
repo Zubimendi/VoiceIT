@@ -29,7 +29,6 @@ testConnection();
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Petition Web App API' });
 });
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/petitions', petitionRoutes);
